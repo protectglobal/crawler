@@ -1,0 +1,9 @@
+{
+  "presets": [
+    "stage-1",
+    "react"
+  ],
+  "plugins": [
+    ["import", { "libraryName": "antd", "style": "css" }]
+  ]
+}
