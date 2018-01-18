@@ -2,10 +2,10 @@ import { Meteor } from 'meteor/meteor';
 import { EJSON } from 'meteor/ejson';
 import { check, Match } from 'meteor/check';
 import Pages from '../index';
+import Crawler from '../../crawler';
 
 //------------------------------------------------------------------------------
 Meteor.methods({ 'Pages.methods.insertPage'(page) {
-  console.log('page', page);
   check(page, {
     url: String,
     lang: Match.Maybe(String),
@@ -27,5 +27,18 @@ Meteor.methods({ 'Pages.methods.insertPage'(page) {
     console.log(exc);
     throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
   }
+} });
+//------------------------------------------------------------------------------
+Meteor.methods({ 'Pages.methods.crawlPage'(pageId) {
+  console.log('pageId', pageId);
+  check(pageId, String);
+
+  // Get requested page
+  const page = Pages.collection.findOne({ _id: pageId });
+  if (!page) {
+    throw new Meteor.Error(404, 'Page doesn\t exist');
+  }
+
+  Crawler.crawl(page.url);
 } });
 //------------------------------------------------------------------------------

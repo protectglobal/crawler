@@ -28,7 +28,6 @@ class NewPage extends React.Component {
 
   handleSubmit = (page) => {
     const { onComplete } = this.props;
-    console.log('page', page);
 
     this.disableBtn();
 

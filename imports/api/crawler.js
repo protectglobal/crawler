@@ -4,21 +4,28 @@ const request = require('request');
 const cheerio = require('cheerio');
 const URLParse = require('url-parse');
 
-const START_URL = 'http://fr.protectglobal.be/';
+// const START_URL = 'http://fr.protectglobal.be/';
 const MAX_PAGES_TO_VISIT = 100;
 const BLACK_LIST = ['vimeo.com'];
 
 let allPages = [];
 const pagesVisited = {};
 let numPagesVisited = 0;
-let pagesToVisit = [START_URL];
-const URL = new URLParse(START_URL);
-const baseUrl = `${URL.protocol}//${URL.hostname}`;
+let pagesToVisit = [];
+let URL = '';
+let baseUrl = '';
+// let pagesToVisit = [START_URL];
+// const URL = new URLParse(START_URL);
+// const baseUrl = `${URL.protocol}//${URL.hostname}`;
+
+// Namespace
+const Crawler = {};
 
 //------------------------------------------------------------------------------
 // AUX FUNCTIONS:
 //------------------------------------------------------------------------------
 function isInBlackList(href) {
+  console.log('\nhref', href);
   let res = false;
 
   BLACK_LIST.forEach((bw) => {
@@ -37,10 +44,12 @@ function isInBlackList(href) {
 function collectInternalLinks($) {
   const relativeLinks = $("a[href^='/']");
   console.log(`\nFound ${relativeLinks.length} relative links on page`);
-  // console.log("\nRelativeLinks " + relativeLinks);
+  console.log(`\nRelativeLinks ${relativeLinks}`);
 
   relativeLinks.each(() => {
+    console.log('$(this)', $(this));
     const href = $(this).attr('href');
+    console.log('href def', href);
     if (!isInBlackList(href)) {
       const page = baseUrl + href;
       if (pagesToVisit.indexOf(page) === -1 && Object.keys(pagesVisited).indexOf(page) === -1) {
@@ -111,14 +120,14 @@ function crawl() {
   return bodyText.indexOf(word.toLowerCase()) !== -1;
 } */
 
-//------------------------------------------------------------------------------
-// MAIN:
-//------------------------------------------------------------------------------
-try {
+Crawler.crawl = (START_URL) => {
+  pagesToVisit.push(START_URL);
+  URL = new URLParse(START_URL);
+  baseUrl = `${URL.protocol}//${URL.hostname}`;
   crawl();
-} catch (exc) {
-  console.log(exc);
-}
+};
+
+export default Crawler;
 
 /*
 import uniq from 'lodash/uniq';
