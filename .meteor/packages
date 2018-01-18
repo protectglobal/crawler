@@ -16,3 +16,5 @@ static-html
 check@1.2.5
 aldeed:collection2-core
 react-meteor-data
+aldeed:schema-index
+ejson

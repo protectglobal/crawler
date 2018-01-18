@@ -40,6 +40,9 @@ collection.deny({
 /**
  * @see {@link http://themeteorchef.com/snippets/using-the-collection2-package/}
  */
+
+SimpleSchema.extendOptions(['index', 'unique']);
+
 const schema = new SimpleSchema({
 
   createdAt: {
@@ -48,14 +51,19 @@ const schema = new SimpleSchema({
 
   url: {
     type: String,
+    index: true,
+    unique: true,
   },
 
-  language: {
+  lang: {
     type: String,
+    label: 'Language',
+    optional: true,
   },
 
   country: {
     type: String,
+    optional: true,
   },
 
   isCrawled: {

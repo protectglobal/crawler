@@ -24,8 +24,8 @@ const columns = ({ handleEdit, handleCrawl, handleDelete }) => ([
   },
   {
     title: 'Language',
-    dataIndex: 'language',
-    key: 'language',
+    dataIndex: 'lang',
+    key: 'lang',
   },
   {
     title: 'Crawled',
