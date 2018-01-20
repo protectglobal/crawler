@@ -76,6 +76,10 @@ const schema = new SimpleSchema({
     defaultValue: [],
   },
 
+  'links.$': {
+    type: String,
+  },
+
   // In order to avoid an 'Exception in setInterval callback' from Meteor
   heartbeat: {
     type: Date,

@@ -30,7 +30,6 @@ Meteor.methods({ 'Pages.methods.insertPage'(page) {
 } });
 //------------------------------------------------------------------------------
 Meteor.methods({ 'Pages.methods.crawlPage'(pageId) {
-  console.log('pageId', pageId);
   check(pageId, String);
 
   // Get requested page
@@ -39,6 +38,21 @@ Meteor.methods({ 'Pages.methods.crawlPage'(pageId) {
     throw new Meteor.Error(404, 'Page doesn\t exist');
   }
 
-  Crawler.crawl(page.url);
+  // Setup sync API
+  const crawlAsync = Meteor.wrapAsync(Crawler.crawl);
+
+  let links = [];
+
+  try {
+    links = crawlAsync(page.url);
+  } catch (exc) {
+    throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
+  }
+
+  try {
+    Pages.collection.update({ _id: pageId }, { $set: { links: Object.keys(links) } });
+  } catch (exc) {
+    throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
+  }
 } });
 //------------------------------------------------------------------------------

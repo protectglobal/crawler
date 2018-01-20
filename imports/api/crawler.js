@@ -1,4 +1,6 @@
+import { Meteor } from 'meteor/meteor';
 import uniq from 'lodash/uniq';
+import Pages from './pages';
 
 const request = require('request');
 const cheerio = require('cheerio');
@@ -14,6 +16,148 @@ let numPagesVisited = 0;
 let pagesToVisit = [];
 let URL = '';
 let baseUrl = '';
+// let PAGE_ID = '';
+// let pagesToVisit = [START_URL];
+// const URL = new URLParse(START_URL);
+// const baseUrl = `${URL.protocol}//${URL.hostname}`;
+
+// Namespace
+const Crawler = {};
+
+//------------------------------------------------------------------------------
+// AUX FUNCTIONS:
+//------------------------------------------------------------------------------
+function isInBlackList(href) {
+  // console.log('\nhref', href);
+  let res = false;
+
+  BLACK_LIST.forEach((bw) => {
+    const isPresent = href.indexOf(bw) !== -1;
+    // console.log('\nhref', href);
+    // console.log('\nbw', bw);
+    // console.log('\nisPresent', isPresent);
+    if (isPresent) {
+      res = true;
+    }
+  });
+
+  return res;
+}
+
+function collectInternalLinks($) {
+  const relativeLinks = $("a[href^='/']");
+  // console.log(`\nFound ${relativeLinks.length} relative links on page`);
+  // console.log(`\nRelativeLinks ${relativeLinks}`);
+
+  relativeLinks.each(function () { // eslint-disable-line func-names
+    const href = $(this).attr('href');
+    if (!isInBlackList(href)) {
+      const page = baseUrl + href;
+      if (pagesToVisit.indexOf(page) === -1 && Object.keys(pagesVisited).indexOf(page) === -1) {
+        pagesToVisit.push(page);
+        pagesToVisit = uniq(pagesToVisit);
+        allPages.push(page);
+        allPages = uniq(allPages);
+      }
+    }
+  });
+}
+
+function visitPage(url, callback, cb) {
+  // Add page to our set
+  pagesVisited[url] = true;
+  numPagesVisited += 1;
+
+  // Make the request
+  console.log('\nVisiting page', url);
+  request(url, (error, response, body) => {
+    // Check status code (200 is HTTP OK)
+    if (!!error || !response || !response.statusCode || !body || response.statusCode !== 200) {
+      cb(error || 'unknown error');
+      return;
+    }
+
+    // Parse the document body
+    const $ = cheerio.load(body);
+    collectInternalLinks($);
+    // console.log('\nallPages', allPages);
+    // console.log('\npagesToVisit', pagesToVisit);
+    // console.log('\npagesVisited', pagesVisited);
+    // In this short program, our callback is just calling crawl()
+    callback(cb);
+  });
+}
+
+function crawl(cb) {
+  console.log('Remaining pages: ', pagesToVisit.length);
+
+
+  if (numPagesVisited >= MAX_PAGES_TO_VISIT) {
+    console.log('Reached max limit of number of pages to visit.');
+    // Pages.collection.update({ _id: PAGE_ID }, { $set: { links: pagesVisited } });
+    cb(null, pagesVisited);
+    return;
+  }
+
+  // Extract next page to crawl
+  const nextPage = pagesToVisit.pop();
+
+  // In case no more page, stop
+  if (!nextPage) {
+    console.log('No more pages');
+    // Pages.collection.update({ _id: PAGE_ID }, { $set: { links: pagesVisited } });
+    cb(null, pagesVisited);
+    return;
+  }
+
+  if (nextPage in pagesVisited) {
+    // We've already visited this page, so repeat the crawl
+    crawl(cb);
+  } else {
+    // New page we haven't visited
+    visitPage(nextPage, crawl, cb);
+  }
+}
+
+/* function searchForWord($, word) {
+  const bodyText = $('html > body').text().toLowerCase();
+  return bodyText.indexOf(word.toLowerCase()) !== -1;
+} */
+
+Crawler.crawl = (START_URL, cb) => {
+  console.log(
+    'START_URL', START_URL,
+    'cb', cb,
+  );
+  pagesToVisit.push(START_URL);
+  URL = new URLParse(START_URL);
+  baseUrl = `${URL.protocol}//${URL.hostname}`;
+  crawl(cb);
+};
+
+export default Crawler;
+
+
+/*
+import { Meteor } from 'meteor/meteor';
+import uniq from 'lodash/uniq';
+import Pages from './pages';
+
+const request = require('request');
+const cheerio = require('cheerio');
+const URLParse = require('url-parse');
+
+// const START_URL = 'http://fr.protectglobal.be/';
+const MAX_PAGES_TO_VISIT = 100;
+const BLACK_LIST = ['vimeo.com'];
+
+let allPages = [];
+const pagesVisited = {};
+let numPagesVisited = 0;
+let pagesToVisit = [];
+let URL = '';
+let baseUrl = '';
+let PAGE_ID = '';
 // let pagesToVisit = [START_URL];
 // const URL = new URLParse(START_URL);
 // const baseUrl = `${URL.protocol}//${URL.hostname}`;
@@ -46,10 +190,8 @@ function collectInternalLinks($) {
   console.log(`\nFound ${relativeLinks.length} relative links on page`);
   console.log(`\nRelativeLinks ${relativeLinks}`);
 
-  relativeLinks.each(() => {
-    console.log('$(this)', $(this));
+  relativeLinks.each(function () { // eslint-disable-line func-names
     const href = $(this).attr('href');
-    console.log('href def', href);
     if (!isInBlackList(href)) {
       const page = baseUrl + href;
       if (pagesToVisit.indexOf(page) === -1 && Object.keys(pagesVisited).indexOf(page) === -1) {
@@ -92,8 +234,10 @@ function visitPage(url, callback) {
 function crawl() {
   console.log('Remaining pages: ', pagesToVisit.length);
 
+
   if (numPagesVisited >= MAX_PAGES_TO_VISIT) {
     console.log('Reached max limit of number of pages to visit.');
+    Pages.collection.update({ _id: PAGE_ID }, { $set: { links: pagesVisited } });
     return;
   }
 
@@ -103,6 +247,7 @@ function crawl() {
   // In case no more page, stop
   if (!nextPage) {
     console.log('No more pages');
+    Pages.collection.update({ _id: PAGE_ID }, { $set: { links: pagesVisited } });
     return;
   }
 
@@ -118,9 +263,18 @@ function crawl() {
 /* function searchForWord($, word) {
   const bodyText = $('html > body').text().toLowerCase();
   return bodyText.indexOf(word.toLowerCase()) !== -1;
-} */
+} //
 
-Crawler.crawl = (START_URL) => {
+Crawler.crawl = (pageId) => {
+  // Get requested page
+  const page = Pages.collection.findOne({ _id: pageId });
+  if (!page) {
+    throw new Meteor.Error(404, 'Page doesn\t exist');
+  }
+
+  PAGE_ID = pageId;
+  const START_URL = page.url;
+
   pagesToVisit.push(START_URL);
   URL = new URLParse(START_URL);
   baseUrl = `${URL.protocol}//${URL.hostname}`;
@@ -128,6 +282,9 @@ Crawler.crawl = (START_URL) => {
 };
 
 export default Crawler;
+*/
+
+
 
 /*
 import uniq from 'lodash/uniq';

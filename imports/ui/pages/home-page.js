@@ -9,6 +9,7 @@ import PagesTable from '../components/pages-table';
 class HomePage extends React.Component {
   state = {
     disabled: false, // whether or not table links are disabled
+    crawledPageId: '',
   }
 
   disableBtn = () => {
@@ -21,6 +22,9 @@ class HomePage extends React.Component {
 
   handleCrawl = (page) => {
     this.disableBtn();
+
+    // Keep track of the crawled page in order to show loading indicator
+    this.setState({ crawledPageId: page._id });
 
     Meteor.call('Pages.methods.crawlPage', page._id, (err) => {
       if (err) {
@@ -36,6 +40,7 @@ class HomePage extends React.Component {
         });
       }
       this.enableBtn();
+      this.setState({ crawledPageId: '' });
     });
   }
 
@@ -48,7 +53,7 @@ class HomePage extends React.Component {
   }
 
   render() {
-    const { disabled } = this.state;
+    const { disabled, crawledPageId } = this.state;
 
     return (
       <div className="p2">
@@ -58,6 +63,7 @@ class HomePage extends React.Component {
         </div>
         <PagesTable
           disabled={disabled}
+          crawledPageId={crawledPageId}
           onCrawl={this.handleCrawl}
           onEdit={this.handleEdit}
           onDelete={this.handleDelete}

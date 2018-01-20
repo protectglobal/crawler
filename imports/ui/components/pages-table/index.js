@@ -6,10 +6,10 @@ import Popconfirm from 'antd/lib/popconfirm'; // for js
 import 'antd/lib/popconfirm/style/css'; // for css
 import Button from 'antd/lib/button'; // for js
 import 'antd/lib/button/style/css'; // for css
-import Icon from 'antd/lib/icon'; // for js
-import 'antd/lib/icon/style/css'; // for css
 import Table from 'antd/lib/table'; // for js
 import 'antd/lib/table/style/css'; // for css
+import Icon from 'antd/lib/icon'; // for js
+import 'antd/lib/icon/style/css'; // for css
 import Pages from '../../../api/pages';
 import { pageFragment } from '../../fragments';
 
@@ -19,6 +19,7 @@ import { pageFragment } from '../../fragments';
 //------------------------------------------------------------------------------
 const columns = ({
   disabled,
+  crawledPageId,
   handleEdit,
   handleCrawl,
   handleDelete,
@@ -47,6 +48,25 @@ const columns = ({
     title: 'Links',
     dataIndex: 'links',
     key: 'links',
+    render: (text, record) => {
+      const { _id, links } = record;
+
+      if (disabled && crawledPageId === _id) {
+        return (
+          <span>
+            Crawling crawling... <Icon type="coffee" />
+          </span>
+        );
+      }
+
+      return (
+        <div style={{ fontSize: '11px' }}>
+          {links && links.map(link => (
+            <p key={link} >{link}</p>
+          ))}
+        </div>
+      );
+    },
   },
   {
     // title: 'Edit',
@@ -56,10 +76,9 @@ const columns = ({
       // is pre-filled using the record's data
       <Button
         onClick={() => handleEdit(record)}
-        loading={disabled}
         disabled={disabled}
       >
-        Edit <Icon type="edit" />
+        Edit
       </Button>
     ),
   },
@@ -71,10 +90,9 @@ const columns = ({
       // find all links associated to the given url
       <Button
         onClick={() => handleCrawl(record)}
-        loading={disabled}
         disabled={disabled}
       >
-        Crawl <Icon type="fork" />
+        Crawl
       </Button>
     ),
   },
@@ -91,11 +109,8 @@ const columns = ({
         okText="Yes"
         cancelText="No"
       >
-        <Button
-          loading={disabled}
-          disabled={disabled}
-        >
-          Delete <Icon type="delete" />
+        <Button disabled={disabled}>
+          Delete
         </Button>
       </Popconfirm>
     ),
@@ -108,6 +123,7 @@ const columns = ({
 const PagesTable = ({
   meteorData,
   disabled,
+  crawledPageId,
   onCrawl,
   onEdit,
   onDelete,
@@ -116,6 +132,7 @@ const PagesTable = ({
     dataSource={meteorData.pages}
     columns={columns({
       disabled,
+      crawledPageId,
       handleCrawl: onCrawl,
       handleEdit: onEdit,
       handleDelete: onDelete,
@@ -130,6 +147,7 @@ PagesTable.propTypes = {
     ).isRequired,
   }).isRequired,
   disabled: PropTypes.bool,
+  crawledPageId: PropTypes.string,
   onCrawl: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
@@ -137,6 +155,7 @@ PagesTable.propTypes = {
 
 PagesTable.defaultProps = {
   disabled: false,
+  crawledPageId: '',
 };
 
 //------------------------------------------------------------------------------
