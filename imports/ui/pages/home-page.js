@@ -48,7 +48,7 @@ class HomePage extends React.Component {
         });
       } else {
         notification.success({
-          message: 'Page successfully added!',
+          message: 'Page successfully crawled!',
           duration: 3,
         });
       }

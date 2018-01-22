@@ -168,7 +168,7 @@ PagesTable.defaultProps = {
 //------------------------------------------------------------------------------
 const withData = withTracker(() => {
   const subs = Meteor.subscribe('Pages.publications.getAllPages');
-  const pages = Pages.collection.find({}).fetch();
+  const pages = Pages.collection.find({}, { sort: { createdAt: -1 } }).fetch(); // newest first.
 
   return {
     meteorData: {

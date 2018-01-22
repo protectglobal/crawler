@@ -54,7 +54,6 @@ class EditPage extends React.Component {
   render() {
     const { page } = this.props;
     const { disabled } = this.state;
-    console.log('page', page);
 
     return (
       <PageForm
