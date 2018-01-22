@@ -7,10 +7,25 @@ import 'antd/lib/input/style/css'; // for css
 import Button from 'antd/lib/button'; // for js
 import 'antd/lib/button/style/css'; // for css
 import extend from 'lodash/extend';
+import AuxFunctions from '../../../api/aux-functions';
 
 const FormItem = Form.Item;
 
-
+//------------------------------------------------------------------------------
+// AUX FUNCTIONS:
+//------------------------------------------------------------------------------
+const isValidUrl = value => (
+  value &&
+  AuxFunctions.validateUrl(value) &&
+  AuxFunctions.hasProtocol(value)
+);
+//------------------------------------------------------------------------------
+const splitLinks = links => (
+  (links && links.split(/[ ,;]+/).filter(Boolean)) || []
+);
+//------------------------------------------------------------------------------
+// COMPONENT:
+//------------------------------------------------------------------------------
 class PageForm extends React.Component {
   handleSubmit = (evt) => {
     const { type, onBeforeHook, onErrorHook, onSubmitHook, form } = this.props;
@@ -33,7 +48,7 @@ class PageForm extends React.Component {
         if (type === 'edit') {
           // Format links string into an array. Note, with filter(Boolean) all
           // falsy values will be omitted from the array.
-          const links = (data && data.links && data.links.split(/[ ,;]+/).filter(Boolean)) || [];
+          const links = (data && splitLinks(data.links)) || [];
           extend(data, { links });
         }
 
@@ -41,6 +56,31 @@ class PageForm extends React.Component {
         onSubmitHook(data);
       }
     });
+  }
+
+  validateUrl = (rule, value, callback) => {
+    if (!isValidUrl(value)) {
+      callback('Please, provide a valid url: http://... or https://...');
+    } else {
+      callback();
+    }
+  }
+
+  validateLinks = (rule, value, callback) => {
+    const linksArray = splitLinks(value);
+
+    let validLinks = true;
+    linksArray.forEach((link) => {
+      if (!isValidUrl(link)) {
+        validLinks = false;
+      }
+    });
+
+    if (!validLinks) {
+      callback('At least one of the links is not a valid url');
+    } else {
+      callback();
+    }
   }
 
   render() {
@@ -55,10 +95,10 @@ class PageForm extends React.Component {
             validateTrigger: 'onBlur',
             rules: [
               { required: true, message: 'This field is required!' },
-              // { max: 100, message: 'Must be no more than 100 characters!' },
+              { validator: this.validateUrl },
             ],
           })(
-            <Input placeholder="URL..." />,
+            <Input placeholder="http://... or https://..." />,
           )}
         </FormItem>
         <FormItem label="Language">
@@ -67,7 +107,6 @@ class PageForm extends React.Component {
             validateTrigger: 'onBlur',
             rules: [
               { required: false, message: 'This field is required!' },
-              // { max: 100, message: 'Must be no more than 100 characters!' },
             ],
           })(
             <Input placeholder="Language..." />,
@@ -79,7 +118,6 @@ class PageForm extends React.Component {
             validateTrigger: 'onBlur',
             rules: [
               { required: false, message: 'This field is required!' },
-              // { max: 100, message: 'Must be no more than 100 characters!' },
             ],
           })(
             <Input placeholder="Country..." />,
@@ -92,7 +130,7 @@ class PageForm extends React.Component {
               validateTrigger: 'onBlur',
               rules: [
                 { required: false, message: 'This field is required!' },
-                // { max: 100, message: 'Must be no more than 100 characters!' },
+                { validator: this.validateLinks },
               ],
             })(
               <Input.TextArea placeholder="Links..." autosize={{ minRows: 4 }} />,

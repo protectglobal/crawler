@@ -7,7 +7,6 @@ import Crawler from '../../crawler';
 
 //------------------------------------------------------------------------------
 Meteor.methods({ 'Pages.methods.insertPage'(page) {
-  console.log('page', page);
   check(page, {
     url: String,
     lang: Match.Maybe(String),
