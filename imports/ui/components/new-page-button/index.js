@@ -8,7 +8,7 @@ import NewPage from '../new-page';
 
 class NewPageButton extends React.PureComponent {
   state = {
-    visible: false, // whether or not the modalform is visible
+    visible: false, // whether or not the modal form is visible
   }
 
   openModal = () => {
@@ -30,20 +30,24 @@ class NewPageButton extends React.PureComponent {
         >
           + ADD PAGE
         </Button>
-        <Modal
-          title="Add a Page"
-          visible={visible}
-          onOk={() => {}}
-          onCancel={this.closeModal}
-          footer={null}
-        >
-          <div className="flex justify-center items-center">
-            <NewPage
-              onCancel={this.closeModal}
-              onComplete={this.closeModal}
-            />
-          </div>
-        </Modal>
+
+        {/* Force re-render in order to clear form fields */}
+        {visible && (
+          <Modal
+            title="Add a Page"
+            visible={visible}
+            onOk={() => {}}
+            onCancel={this.closeModal}
+            footer={null}
+          >
+            <div className="flex justify-center items-center">
+              <NewPage
+                onCancel={this.closeModal}
+                onComplete={this.closeModal}
+              />
+            </div>
+          </Modal>
+        )}
       </div>
     );
   }

@@ -3,10 +3,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import notification from 'antd/lib/notification'; // for js
 import 'antd/lib/notification/style/css'; // for css
+import { pageFragment } from '../../fragments';
 import PageForm from '../page-form';
 
 
-class NewPage extends React.Component {
+class EditPage extends React.Component {
   state = {
     disabled: false, // whether or not the form submit button is disabled
   }
@@ -31,7 +32,7 @@ class NewPage extends React.Component {
 
     this.disableBtn();
 
-    Meteor.call('Pages.methods.insertPage', page, (err) => {
+    Meteor.call('Pages.methods.updatePage', page, (err) => {
       if (err) {
         console.log(err);
         notification.error({
@@ -40,7 +41,7 @@ class NewPage extends React.Component {
         });
       } else {
         notification.success({
-          message: 'Page successfully added!',
+          message: 'Page successfully edited!',
           duration: 3,
         });
         // Pass event up to parent component
@@ -51,12 +52,15 @@ class NewPage extends React.Component {
   }
 
   render() {
+    const { page } = this.props;
     const { disabled } = this.state;
+    console.log('page', page);
 
     return (
       <PageForm
-        type="new"
-        btnLabel={!disabled ? 'Add Page!' : 'Creating...'}
+        type="edit"
+        btnLabel={!disabled ? 'Edit Page!' : 'Editing...'}
+        initialValue={page}
         disabled={disabled}
         onBeforeHook={this.disableBtn}
         onErrorHook={this.enableBtn}
@@ -67,14 +71,15 @@ class NewPage extends React.Component {
   }
 }
 
-NewPage.propTypes = {
+EditPage.propTypes = {
+  page: PropTypes.shape(pageFragment).isRequired,
   onComplete: PropTypes.func,
   onCancel: PropTypes.func,
 };
 
-NewPage.defaultProps = {
+EditPage.defaultProps = {
   onComplete: () => {},
   onCancel: () => {},
 };
 
-export default NewPage;
+export default EditPage;

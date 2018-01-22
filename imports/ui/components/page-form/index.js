@@ -6,13 +6,14 @@ import Input from 'antd/lib/input'; // for js
 import 'antd/lib/input/style/css'; // for css
 import Button from 'antd/lib/button'; // for js
 import 'antd/lib/button/style/css'; // for css
+import extend from 'lodash/extend';
 
 const FormItem = Form.Item;
 
 
 class PageForm extends React.Component {
   handleSubmit = (evt) => {
-    const { onBeforeHook, onErrorHook, onSubmitHook, form } = this.props;
+    const { type, onBeforeHook, onErrorHook, onSubmitHook, form } = this.props;
 
     evt.preventDefault();
 
@@ -28,14 +29,22 @@ class PageForm extends React.Component {
         // Pass event up to parent component
         onErrorHook(err);
       } else {
-        // Pass data up to parent component to handle submit functionality
+        // In case we are editing, format links field.
+        if (type === 'edit') {
+          // Format links string into an array. Note, with filter(Boolean) all
+          // falsy values will be omitted from the array.
+          const links = (data && data.links && data.links.split(/[ ,;]+/).filter(Boolean)) || [];
+          extend(data, { links });
+        }
+
+        // Pass data up to parent component to handle submit functionality.
         onSubmitHook(data);
       }
     });
   }
 
   render() {
-    const { form, btnLabel, initialValue, disabled } = this.props;
+    const { type, form, btnLabel, initialValue, disabled } = this.props;
     const { getFieldDecorator } = form;
 
     return (
@@ -76,6 +85,34 @@ class PageForm extends React.Component {
             <Input placeholder="Country..." />,
           )}
         </FormItem>
+        {type === 'edit' && (
+          <FormItem label="Links">
+            {getFieldDecorator('links', {
+              initialValue: (initialValue && initialValue.links && initialValue.links.join(', ')) || '',
+              validateTrigger: 'onBlur',
+              rules: [
+                { required: false, message: 'This field is required!' },
+                // { max: 100, message: 'Must be no more than 100 characters!' },
+              ],
+            })(
+              <Input.TextArea placeholder="Links..." autosize={{ minRows: 4 }} />,
+            )}
+          </FormItem>
+        )}
+        {type === 'edit' && (
+          <FormItem label="ID" className="display-none">
+            {getFieldDecorator('_id', {
+              initialValue: (initialValue && initialValue._id) || '',
+              validateTrigger: 'onBlur',
+              rules: [
+                { required: true, message: 'This field is required!' },
+                // { max: 100, message: 'Must be no more than 100 characters!' },
+              ],
+            })(
+              <Input placeholder="ID..." />,
+            )}
+          </FormItem>
+        )}
         <FormItem>
           <Button
             htmlType="submit"
@@ -92,11 +129,14 @@ class PageForm extends React.Component {
 }
 
 PageForm.propTypes = {
+  type: PropTypes.oneOf(['new', 'edit']).isRequired,
   btnLabel: PropTypes.string,
   initialValue: PropTypes.shape({
-    url: PropTypes.string,
+    _id: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
     lang: PropTypes.string,
     country: PropTypes.string,
+    links: PropTypes.arrayOf(PropTypes.string),
   }),
   disabled: PropTypes.bool,
   onBeforeHook: PropTypes.func,

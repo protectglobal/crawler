@@ -1,11 +1,13 @@
 import { Meteor } from 'meteor/meteor';
 import { EJSON } from 'meteor/ejson';
 import { check, Match } from 'meteor/check';
+import omit from 'lodash/omit';
 import Pages from '../index';
 import Crawler from '../../crawler';
 
 //------------------------------------------------------------------------------
 Meteor.methods({ 'Pages.methods.insertPage'(page) {
+  console.log('page', page);
   check(page, {
     url: String,
     lang: Match.Maybe(String),
@@ -49,9 +51,64 @@ Meteor.methods({ 'Pages.methods.crawlPage'(pageId) {
     throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
   }
 
+  const selector = { _id: pageId };
+  const modifier = {
+    $set: {
+      isCrawled: true,
+    },
+    $addToSet: {
+      links: {
+        $each: Object.keys(links),
+      },
+    },
+  };
+
   try {
-    Pages.collection.update({ _id: pageId }, { $set: { links: Object.keys(links) } });
+    Pages.collection.update(selector, modifier);
   } catch (exc) {
+    throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
+  }
+} });
+//------------------------------------------------------------------------------
+Meteor.methods({ 'Pages.methods.updatePage'(page) {
+  check(page, {
+    _id: String,
+    url: String,
+    lang: Match.Maybe(String),
+    country: Match.Maybe(String),
+    links: [String],
+  });
+
+  // Destructure.
+  const { _id: pageId } = page;
+
+  // Check whether or not the page exists.
+  const exists = !!Pages.collection.findOne({ _id: pageId });
+  if (!exists) {
+    throw new Meteor.Error(404, 'Page doesn\'t exist');
+  }
+
+  try {
+    Pages.collection.update({ _id: pageId }, { $set: { ...omit(page, ['_id']) } });
+  } catch (exc) {
+    console.log(exc);
+    throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
+  }
+} });
+//------------------------------------------------------------------------------
+Meteor.methods({ 'Pages.methods.removePage'(pageId) {
+  check(pageId, String);
+
+  // Check whether or not the page exists
+  const exists = !!Pages.collection.findOne({ _id: pageId });
+  if (!exists) {
+    throw new Meteor.Error(404, 'Page doesn\'t exist');
+  }
+
+  try {
+    Pages.collection.remove({ _id: pageId });
+  } catch (exc) {
+    console.log(exc);
     throw new Meteor.Error(500, EJSON.stringify(exc, { indent: true }));
   }
 } });

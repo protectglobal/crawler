@@ -43,6 +43,11 @@ const columns = ({
     title: 'Crawled',
     dataIndex: 'isCrawled',
     key: 'isCrawled',
+    render: (text, { isCrawled }) => (
+      <span>
+        {isCrawled ? 'yes' : 'no'}
+      </span>
+    ),
   },
   {
     title: 'Links',
@@ -104,7 +109,7 @@ const columns = ({
       // the DB
       <Popconfirm
         title="Are you sure delete this page?"
-        onClick={() => handleDelete(record)}
+        onConfirm={() => handleDelete(record)}
         onCancel={() => {}}
         okText="Yes"
         cancelText="No"
