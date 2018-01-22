@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import extend from 'lodash/extend';
 import collection from './collection';
 
@@ -11,5 +12,10 @@ const Pages = {};
 extend(Pages, { collection });
 
 // Load server-only utilities
+if (Meteor.isServer) {
+  import api from './server/api';
+
+  extend(Pages, { api });
+}
 
 export default Pages;

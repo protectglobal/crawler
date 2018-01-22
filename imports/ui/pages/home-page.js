@@ -4,6 +4,8 @@ import notification from 'antd/lib/notification'; // for js
 import 'antd/lib/notification/style/css'; // for css
 import Modal from 'antd/lib/modal'; // for js
 import 'antd/lib/modal/style/css'; // for css
+import ImportPageButton from '../components/import-page-button';
+import CrawlAllPagesButton from '../components/crawl-all-pages-button';
 import NewPageButton from '../components/new-page-button';
 import PagesTable from '../components/pages-table';
 import EditPage from '../components/edit-page';
@@ -91,6 +93,11 @@ class HomePage extends React.Component {
       <div className="p2">
         <div className="flex justify-between items-center">
           <h1>List of Wordpress sites:</h1>
+          <ImportPageButton />
+          <CrawlAllPagesButton
+            onStart={this.disableBtn}
+            onComplete={this.enableBtn}
+          />
           <NewPageButton />
         </div>
         <PagesTable

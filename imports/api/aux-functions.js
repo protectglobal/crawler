@@ -1,3 +1,5 @@
+import isString from 'lodash/isString';
+
 /**
 * @namespace AuxFunctions
 */
@@ -15,6 +17,18 @@ AuxFunctions.validateUrl = (url) => {
 AuxFunctions.hasProtocol = url => (
   url.toLowerCase().slice(0, 4).toLowerCase() === 'http'
 );
+//------------------------------------------------------------------------------
+AuxFunctions.ensureString = input => (
+  !input || !isString(input) ? '' : input.trim()
+);
+//------------------------------------------------------------------------------
+AuxFunctions.ensureUrl = (input) => {
+  const url = AuxFunctions.ensureString(input);
+  if (!url) {
+    return '';
+  }
+  return AuxFunctions.hasProtocol(url) ? url : `http://${url}`;
+};
 //------------------------------------------------------------------------------
 
 export default AuxFunctions;

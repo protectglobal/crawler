@@ -10,6 +10,8 @@
     "basscss": "^8.0.3",
     "bcrypt": "^1.0.3",
     "cheerio": "^1.0.0-rc.2",
+    "fibers": "^2.0.0",
+    "google-spreadsheets": "^0.5.1",
     "indexof": "0.0.1",
     "lodash": "^4.17.4",
     "meteor-node-stubs": "^0.3.2",
