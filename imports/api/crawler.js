@@ -60,13 +60,20 @@ function visitPage(url, callback, cb) {
 
   request(url, (error, response, body) => {
     // Check status code (200 is HTTP OK)
+    if (!error && response && response.statusCode && response.statusCode === 404) {
+      console.log('\nNOT FOUND', response && response.statusCode);
+      // Skip this page.
+      callback(cb);
+      return;
+    }
+
     if (!!error || !response || !response.statusCode || !body || response.statusCode !== 200) {
       console.log('\nerror', error);
       // console.log('\nresponse', response);
       console.log('\nresponse.statusCode', response && response.statusCode);
-      // cb(error || 'unknown error');
+      cb(error || 'unknown error');
       // Skip this page.
-      callback(cb);
+      // callback(cb);
       return;
     }
 
