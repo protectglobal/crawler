@@ -1,6 +1,4 @@
-import { Meteor } from 'meteor/meteor';
 import uniq from 'lodash/uniq';
-import Pages from './pages';
 
 const request = require('request');
 const cheerio = require('cheerio');
@@ -10,7 +8,7 @@ const MAX_PAGES_TO_VISIT = 100;
 const BLACK_LIST = ['vimeo.com'];
 
 let allPages = [];
-const pagesVisited = {};
+let pagesVisited = {};
 let numPagesVisited = 0;
 let pagesToVisit = [];
 let URL = '';
@@ -63,7 +61,12 @@ function visitPage(url, callback, cb) {
   request(url, (error, response, body) => {
     // Check status code (200 is HTTP OK)
     if (!!error || !response || !response.statusCode || !body || response.statusCode !== 200) {
-      cb(error || 'unknown error');
+      console.log('\nerror', error);
+      // console.log('\nresponse', response);
+      console.log('\nresponse.statusCode', response && response.statusCode);
+      // cb(error || 'unknown error');
+      // Skip this page.
+      callback(cb);
       return;
     }
 
@@ -76,7 +79,11 @@ function visitPage(url, callback, cb) {
 }
 
 function crawl(cb) {
-  console.log('Remaining pages: ', pagesToVisit.length);
+  console.log('\nRemaining pages: ', pagesToVisit.length);
+  console.log('\nPages to visit: ', pagesToVisit);
+  console.log('\nAll pages: ', allPages);
+  console.log('\npagesVisited', pagesVisited);
+  console.log('\n------');
 
 
   if (numPagesVisited >= MAX_PAGES_TO_VISIT) {
@@ -110,6 +117,14 @@ function crawl(cb) {
 } */
 
 Crawler.crawl = (START_URL, cb) => {
+  // Initialize
+  allPages = [];
+  pagesVisited = {};
+  numPagesVisited = 0;
+  pagesToVisit = [];
+  URL = '';
+  baseUrl = '';
+
   pagesToVisit.push(START_URL);
   URL = new URLParse(START_URL);
   baseUrl = `${URL.protocol}//${URL.hostname}`;

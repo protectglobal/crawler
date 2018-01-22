@@ -33,6 +33,9 @@ Meteor.methods({ 'Pages.methods.insertPage'(page) {
 Meteor.methods({ 'Pages.methods.crawlPage'(pageId) {
   check(pageId, String);
 
+  // Allow other methods to run before this one finishes.
+  this.unblock();
+
   // Get requested page
   const page = Pages.collection.findOne({ _id: pageId });
   if (!page) {
