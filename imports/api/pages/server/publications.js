@@ -4,6 +4,6 @@ import Pages from '../index';
 
 //------------------------------------------------------------------------------
 Meteor.publish('Pages.publications.getAllPages', function () {
-  return Pages.collection.find({});
+  return Pages.collection.find({}, { sort: { createdAt: -1 } }); // newest first.
 });
 //------------------------------------------------------------------------------
