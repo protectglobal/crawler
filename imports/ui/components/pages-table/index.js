@@ -1,5 +1,3 @@
-import { Meteor } from 'meteor/meteor';
-import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Popconfirm from 'antd/lib/popconfirm'; // for js
@@ -10,7 +8,6 @@ import Table from 'antd/lib/table'; // for js
 import 'antd/lib/table/style/css'; // for css
 import Icon from 'antd/lib/icon'; // for js
 import 'antd/lib/icon/style/css'; // for css
-import Pages from '../../../api/pages';
 import { pageFragment } from '../../fragments';
 
 
@@ -19,7 +16,6 @@ import { pageFragment } from '../../fragments';
 //------------------------------------------------------------------------------
 const columns = ({
   disabled,
-  crawledPageId,
   handleEdit,
   handleCrawl,
   handleDelete,
@@ -54,9 +50,9 @@ const columns = ({
     dataIndex: 'links',
     key: 'links',
     render: (text, record) => {
-      const { _id, links } = record;
+      const { _id, isCrawling, links } = record;
 
-      if (disabled && crawledPageId === _id) {
+      if (isCrawling) {
         return (
           <span>
             Crawling crawling... <Icon type="coffee" />
@@ -114,7 +110,9 @@ const columns = ({
         okText="Yes"
         cancelText="No"
       >
-        <Button disabled={disabled}>
+        <Button
+          disabled={disabled}
+        >
           Delete
         </Button>
       </Popconfirm>
@@ -126,18 +124,16 @@ const columns = ({
 // COMPONENT:
 //------------------------------------------------------------------------------
 const PagesTable = ({
-  meteorData,
+  pages,
   disabled,
-  crawledPageId,
   onCrawl,
   onEdit,
   onDelete,
 }) => (
   <Table
-    dataSource={meteorData.pages}
+    dataSource={pages}
     columns={columns({
       disabled,
-      crawledPageId,
       handleCrawl: onCrawl,
       handleEdit: onEdit,
       handleDelete: onDelete,
@@ -146,36 +142,19 @@ const PagesTable = ({
 );
 
 PagesTable.propTypes = {
-  meteorData: PropTypes.shape({
-    pages: PropTypes.arrayOf(
-      PropTypes.shape(pageFragment),
-    ).isRequired,
-  }).isRequired,
+  pages: PropTypes.arrayOf(PropTypes.shape(pageFragment)),
   disabled: PropTypes.bool,
-  crawledPageId: PropTypes.string,
-  onCrawl: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onDelete: PropTypes.func.isRequired,
+  onCrawl: PropTypes.func,
+  onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
 };
 
 PagesTable.defaultProps = {
+  pages: [],
   disabled: false,
-  crawledPageId: '',
+  onCrawl: () => {},
+  onEdit: () => {},
+  onDelete: () => {},
 };
 
-//------------------------------------------------------------------------------
-// CONTAINER:
-//------------------------------------------------------------------------------
-const withData = withTracker(() => {
-  const subs = Meteor.subscribe('Pages.publications.getAllPages');
-  const pages = Pages.collection.find({}, { sort: { createdAt: -1 } }).fetch(); // newest first.
-
-  return {
-    meteorData: {
-      pagesReady: subs.ready(),
-      pages,
-    },
-  };
-});
-
-export default withData(PagesTable);
+export default PagesTable;

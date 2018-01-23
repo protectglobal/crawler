@@ -8,26 +8,7 @@ import 'antd/lib/notification/style/css'; // for css
 
 
 class CrawlAllPagesButton extends React.PureComponent {
-  state = {
-    disabled: false,
-  }
-
-  disableBtn = () => {
-    this.setState({ disabled: true });
-  }
-
-  enableBtn = () => {
-    this.setState({ disabled: false });
-  }
-
   handleClick = () => {
-    const { onStart, onComplete } = this.props;
-
-    this.disableBtn();
-
-    // Pass event up to parent component
-    onStart();
-
     Meteor.call('Pages.methods.crawlAllPages', (err) => {
       if (err) {
         console.log(err);
@@ -41,14 +22,11 @@ class CrawlAllPagesButton extends React.PureComponent {
           duration: 3,
         });
       }
-      this.enableBtn();
-      // Pass event up to parent component
-      onComplete();
     });
   }
 
   render() {
-    const { disabled } = this.state;
+    const { disabled } = this.props;
 
     return (
       <Button
@@ -63,13 +41,11 @@ class CrawlAllPagesButton extends React.PureComponent {
 }
 
 CrawlAllPagesButton.propTypes = {
-  onStart: PropTypes.func,
-  onComplete: PropTypes.func,
+  disabled: PropTypes.bool,
 };
 
 CrawlAllPagesButton.defaultProps = {
-  onStart: () => {},
-  onComplete: () => {},
+  disabled: false,
 };
 
 export default CrawlAllPagesButton;

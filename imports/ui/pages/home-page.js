@@ -1,9 +1,13 @@
 import { Meteor } from 'meteor/meteor';
+import { withTracker } from 'meteor/react-meteor-data';
 import React from 'react';
+import PropTypes from 'prop-types';
 import notification from 'antd/lib/notification'; // for js
 import 'antd/lib/notification/style/css'; // for css
 import Modal from 'antd/lib/modal'; // for js
 import 'antd/lib/modal/style/css'; // for css
+import Pages from '../../api/pages';
+import { pageFragment } from '../fragments';
 import ImportPageButton from '../components/import-page-button';
 import CrawlAllPagesButton from '../components/crawl-all-pages-button';
 import NewPageButton from '../components/new-page-button';
@@ -13,18 +17,8 @@ import EditPage from '../components/edit-page';
 
 class HomePage extends React.Component {
   state = {
-    disabled: false, // whether or not table links are disabled
     visible: false, // whether or not the modal form is visible
     editPage: {}, // page to be edited
-    crawledPageId: '',
-  }
-
-  disableBtn = () => {
-    this.setState({ disabled: true });
-  }
-
-  enableBtn = () => {
-    this.setState({ disabled: false });
   }
 
   openModal = () => {
@@ -36,11 +30,6 @@ class HomePage extends React.Component {
   }
 
   handleCrawl = ({ _id: pageId }) => {
-    this.disableBtn();
-
-    // Keep track of the crawled page in order to show loading indicator
-    this.setState({ crawledPageId: pageId });
-
     Meteor.call('Pages.methods.crawlPage', pageId, (err) => {
       if (err) {
         console.log(err);
@@ -54,8 +43,6 @@ class HomePage extends React.Component {
           duration: 3,
         });
       }
-      this.enableBtn();
-      this.setState({ crawledPageId: '' });
     });
   }
 
@@ -67,8 +54,6 @@ class HomePage extends React.Component {
   }
 
   handleDelete = ({ _id: pageId }) => {
-    this.disableBtn();
-
     Meteor.call('Pages.methods.removePage', pageId, (err) => {
       if (err) {
         console.log(err);
@@ -82,27 +67,25 @@ class HomePage extends React.Component {
           duration: 3,
         });
       }
-      this.enableBtn();
     });
   }
 
   render() {
-    const { disabled, visible, editPage, crawledPageId } = this.state;
+    const { meteorData } = this.props;
+    const { pages, disabled } = meteorData;
+    const { visible, editPage } = this.state;
 
     return (
       <div className="p2">
         <div className="flex justify-between items-center">
           <h1>List of Wordpress sites:</h1>
-          <ImportPageButton />
-          <CrawlAllPagesButton
-            onStart={this.disableBtn}
-            onComplete={this.enableBtn}
-          />
+          <ImportPageButton disabled={disabled} />
+          <CrawlAllPagesButton disabled={disabled} />
           <NewPageButton />
         </div>
         <PagesTable
+          pages={pages}
           disabled={disabled}
-          crawledPageId={crawledPageId}
           onCrawl={this.handleCrawl}
           onEdit={this.handleEdit}
           onDelete={this.handleDelete}
@@ -131,4 +114,35 @@ class HomePage extends React.Component {
   }
 }
 
-export default HomePage;
+PagesTable.propTypes = {
+  meteorData: PropTypes.shape({
+    pages: PropTypes.arrayOf(PropTypes.shape(pageFragment)).isRequired,
+    disabled: PropTypes.bool.isRequired,
+  }),
+};
+
+PagesTable.defaultProps = {
+  meteorData: {
+    pages: [],
+    disabled: false,
+  },
+};
+
+//------------------------------------------------------------------------------
+// CONTAINER:
+//------------------------------------------------------------------------------
+const withData = withTracker(() => {
+  const subs = Meteor.subscribe('Pages.publications.getAllPages');
+  const pages = Pages.collection.find({}, { sort: { createdAt: -1 } }).fetch(); // newest first.
+  const disabled = pages.filter(page => page.isCrawling === true).length > 0;
+
+  return {
+    meteorData: {
+      pagesReady: subs.ready(),
+      disabled: disabled || false,
+      pages: pages || [],
+    },
+  };
+});
+
+export default withData(HomePage);

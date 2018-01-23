@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
+import PropTypes from 'prop-types';
 import Popconfirm from 'antd/lib/popconfirm'; // for js
 import 'antd/lib/popconfirm/style/css'; // for css
 import Button from 'antd/lib/button'; // for js
@@ -44,8 +45,6 @@ class ImportPageButton extends React.PureComponent {
   }
 
   render() {
-    const { disabled } = this.state;
-
     return (
       <Popconfirm
         title="This operation will remove all existing records. Do you want to proceed?"
@@ -56,7 +55,7 @@ class ImportPageButton extends React.PureComponent {
       >
         <Button
           type="danger"
-          disabled={disabled}
+          disabled={this.state.disabled || this.props.disabled}
         >
           <Icon type="download" /> IMPORT
         </Button>
@@ -64,5 +63,13 @@ class ImportPageButton extends React.PureComponent {
     );
   }
 }
+
+ImportPageButton.propTypes = {
+  disabled: PropTypes.bool,
+};
+
+ImportPageButton.defaultProps = {
+  disabled: false,
+};
 
 export default ImportPageButton;

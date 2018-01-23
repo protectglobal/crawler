@@ -78,14 +78,17 @@ api.crawlPage = (pageId) => {
     throw new Error(404, 'Page doesn\t exist');
   }
 
+  const selector = { _id: pageId };
+  Pages.collection.update(selector, { $set: { isCrawling: true } });
+
   // Setup sync API
   const crawlAsync = Meteor.wrapAsync(Crawler.crawl);
 
   const links = crawlAsync(page.url);
 
-  const selector = { _id: pageId };
   const modifier = {
     $set: {
+      isCrawling: false,
       isCrawled: true,
     },
     $addToSet: {
