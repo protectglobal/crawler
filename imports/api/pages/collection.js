@@ -66,6 +66,11 @@ const schema = new SimpleSchema({
     optional: true,
   },
 
+  isCrawling: {
+    type: Boolean,
+    defaultValue: false,
+  },
+
   isCrawled: {
     type: Boolean,
     defaultValue: false,

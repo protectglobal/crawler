@@ -7,6 +7,7 @@ export const pageFragment = {
   url: PropTypes.string.isRequired,
   lang: PropTypes.string,
   country: PropTypes.string,
+  isCrawling: PropTypes.bool,
   isCrawled: PropTypes.bool,
   links: PropTypes.arrayOf(PropTypes.string),
 };
